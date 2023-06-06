@@ -23,6 +23,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
         <result property="goodsName"    column="goods_name"    />
         <result property="customerName"    column="customer_name"    />
+        <result property="deliveryDate"    column="delivery_date"    />
     </resultMap>
 
     <sql id="selectReceiptDetailsVo">
@@ -42,14 +43,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         ]]>
         <where>
             and a.status = '0' and b.status = '0' and c.status = '0' and d.status = '0'
-            <if test="deliveryDateBeginTime != null and deliveryDateBeginTime != ''"><!-- 開始時間检索 -->
-                AND a.delivery_date &gt;= to_date(#{deliveryDateBeginTime},'yyyy-MM-dd HH24:mi:ss')
-            </if>
-            <if test="deliveryDateEndTime != null and deliveryDateEndTime != ''"><!-- 結束時間检索 -->
-                AND a.delivery_date &lt;= to_date(#{deliveryDateEndTime},'yyyy-MM-dd HH24:mi:ss')
+            <if test="deliveryDateBeginTime != null and deliveryDateBeginTime != '' and deliveryDateEndTime != null and deliveryDateEndTime != ''"><!-- 開始時間检索 -->
+                AND a.delivery_date BETWEEN #{deliveryDateBeginTime} and #{deliveryDateEndTime}
             </if>
             <if test="customerId != null "> and b.customer_id = #{customerId}</if>
         </where>
+        order by a.delivery_date desc
     </select>
     
 

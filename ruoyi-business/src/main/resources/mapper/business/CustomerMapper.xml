@@ -28,6 +28,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="customerAddress != null  and customerAddress != ''"> and customer_address = #{customerAddress}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectCustomerByCustomerId" parameterType="Long" resultMap="CustomerResult">

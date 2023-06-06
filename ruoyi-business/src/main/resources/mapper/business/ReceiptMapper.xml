@@ -52,6 +52,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="totalAmount != null "> and total_amount = #{totalAmount}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectReceiptByReceiptId" parameterType="Long" resultMap="ReceiptReceiptDetailsResult">

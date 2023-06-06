@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form ref="customerReceiptForm" :model="queryParams" :inline="true" size="small" label-width="100px">
+    <el-form :model="queryParams" ref="queryForm" :inline="true" size="small" v-show="showSearch" label-width="100px">
       <el-form-item label="客户" prop="customerId">
         <el-select  v-model="queryParams.customerId" clearable filterable placeholder="请选择客户">
             <el-option
@@ -12,7 +12,7 @@
             </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="发送日期" prop="deliveryDates">
+      <el-form-item label="发货日期" prop="deliveryDates">
         <el-date-picker type="daterange" v-model="queryParams.deliveryDates" format="yyyy-MM-dd"
           value-format="yyyy-MM-dd" :style="{width: '100%'}" start-placeholder="开始日期" end-placeholder="结束日期"
           range-separator="至" clearable></el-date-picker>
@@ -23,7 +23,24 @@
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="customerReceiptList" >
+    <el-row :gutter="10" class="mb8">
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="el-icon-download"
+          size="mini"
+          @click="handleExport"
+          v-hasPermi="['business:receiptDetails:export']"
+        >导出</el-button>
+      </el-col>
+      <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
+    </el-row>
+
+
+
+    <el-table v-loading="loading" :data="customerReceiptList"
+        :summary-method="getSummariesAmount" show-summary >
       <el-table-column label="序号" align="center">
         <template slot-scope="scope">
           <span>{{scope.$index + 1}}</span>
@@ -41,19 +58,26 @@
       <el-table-column label="单价" prop="price" width="150" />
       <el-table-column label="皮重" prop="tareWeight" width="150" />
       <el-table-column label="磅位" prop="poundPosition" width="150" />
-      <el-table-column label="金额" prop="amount" width="150" />
+      <el-table-column label="金额" prop="amount" width="150" >
+          <template slot-scope="scope">
+               <span>{{scope.row.amount}}元</span>
+          </template>
+      </el-table-column>
       <el-table-column label="狀態" align="center" prop="status" >
           <template slot-scope="scope">
             <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
           </template>
       </el-table-column>
     </el-table>
+
+
   </div>
 </template>
 
 <script>
 import { listCustomerReceipt } from "@/api/business/receipt_rpt";
 import { optionselect as getCustomerOptionselect } from "@/api/business/customer";
+import { isEmpty } from '@/utils/ruoyi';
 
 export default {
   name: "customerReceipt",
@@ -64,6 +88,10 @@ export default {
     return {
       // 遮罩层
       loading: false,
+      // 显示搜索条件
+      showSearch: true,
+      // 总条数
+      total: 0,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -83,20 +111,62 @@ export default {
   watch: {},
   created() {},
   mounted() {
+
     /** 查询客户下拉列表 */
     getCustomerOptionselect().then(response => {
       this.customerOptions = response.data;
     });
   },
   methods: {
+    getSummariesAmount(param) {
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 1) {
+          sums[index] = '合计';
+          return;
+        } else if (index === 9) {
+          const values = data.map(item => Number(item[column.property]));
+          if (!values.every(value => isNaN(value))) {
+             const values = data.map(item => Number(item[column.property]))
+             if (!values.every(value => isNaN(value))) {
+               sums[index] = values.reduce((prev, curr) => {
+                  const value = Number(curr)
+                  if (!isNaN(value)) {
+                    return prev + curr
+                  } else {
+                    return prev
+                  }
+               }, 0).toFixed(2)
+              }
+              sums[index] += ' 元';
+          } else {
+            sums[index] = 'N/A';
+          }
+        }
+      });
+      return sums;
+    },
     /** 搜索按钮操作 */
     handleQuery() {
+      if (isEmpty(this.queryParams.deliveryDates)
+          && isEmpty(this.queryParams.customerId)) {
+        this.$modal.msgError("请先填送货日期或客户");
+        return;
+      }
+
+      if (!isEmpty(this.queryParams.deliveryDates) ) {
+          this.queryParams.deliveryDateBeginTime=this.queryParams.deliveryDates[0];
+          this.queryParams.deliveryDateEndTime=this.queryParams.deliveryDates[1];
+      }
       this.queryParams.pageNum = 1;
       this.getList();
     },
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
+      this.queryParams.deliveryDateBeginTime='';
+      this.queryParams.deliveryDateEndTime='';
       this.handleQuery();
     },
     /** 查询单据头列表 */
@@ -108,7 +178,23 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
-    }
+    },
+     /** 导出按钮操作 */
+     handleExport() {
+       if (isEmpty(this.queryParams.deliveryDates)
+           && isEmpty(this.queryParams.customerId)) {
+         this.$modal.msgError("请先填送货日期或客户");
+         return;
+       }
+
+       if (!isEmpty(this.queryParams.deliveryDates) ) {
+           this.queryParams.deliveryDateBeginTime=this.queryParams.deliveryDates[0];
+           this.queryParams.deliveryDateEndTime=this.queryParams.deliveryDates[1];
+       }
+       this.download('business/receipt/customerReceiptExport', {
+         ...this.queryParams
+       }, `receipt_${new Date().getTime()}.xlsx`)
+     }
 
   }
 }

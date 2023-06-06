@@ -63,7 +63,11 @@
 
     <el-table v-loading="loading" :data="goodsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="品种id" align="center" prop="goodsId" />
+      <el-table-column label="序号" align="center">
+        <template slot-scope="scope">
+          <span>{{scope.$index + 1}}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="品种名称" align="center" prop="goodsName" />
       <el-table-column label="备注" align="center" prop="goodsRemark" />
       <el-table-column label="狀態" align="center" prop="status" >

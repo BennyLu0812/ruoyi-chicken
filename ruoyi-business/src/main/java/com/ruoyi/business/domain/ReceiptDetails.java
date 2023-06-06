@@ -22,7 +22,6 @@ public class ReceiptDetails extends BaseEntity
     private Long receiptDetailsId;
 
     /** 单据id */
-    @Excel(name = "单据id")
     private Long receiptId;
 
     /** 品种 */
@@ -62,7 +61,6 @@ public class ReceiptDetails extends BaseEntity
     private Double amount;
 
     /** 状态 */
-    @Excel(name = "状态")
     private String status;
 
     private String deliveryDateBeginTime;

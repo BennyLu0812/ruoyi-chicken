@@ -79,7 +79,11 @@
 
     <el-table v-loading="loading" :data="customerList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="客户id" align="center" prop="customerId" />
+      <el-table-column label="序号" align="center">
+        <template slot-scope="scope">
+          <span>{{scope.$index + 1}}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="联系电话" align="center" prop="customerPhone" />
       <el-table-column label="客户名称" align="center" prop="customerName" />
       <el-table-column label="客户地址" align="center" prop="customerAddress" />

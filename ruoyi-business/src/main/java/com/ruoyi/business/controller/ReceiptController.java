@@ -114,7 +114,7 @@ public class ReceiptController extends BaseController
     @PreAuthorize("@ss.hasPermi('business:receiptDetails:list')")
     @GetMapping("/customerReceiptList")
     public TableDataInfo customerReceiptList(ReceiptDetails receiptDetails) {
-        startPage();
+
         List<ReceiptDetails> list = receiptDetailsService.selectReceiptDetailsList(receiptDetails);
         return getDataTable(list);
     }
