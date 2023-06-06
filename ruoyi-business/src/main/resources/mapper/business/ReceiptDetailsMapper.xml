@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.ReceiptDetailsMapper">
+    
+    <resultMap type="ReceiptDetails" id="ReceiptDetailsResult">
+        <result property="receiptDetailsId"    column="receipt_details_id"    />
+        <result property="receiptId"    column="receipt_id"    />
+        <result property="goodsId"    column="goods_id"    />
+        <result property="customerId"    column="customer_id"    />
+        <result property="grossWeight"    column="gross_weight"    />
+        <result property="cagesNumber"    column="cages_number"    />
+        <result property="price"    column="price"    />
+        <result property="tareWeight"    column="tare_weight"    />
+        <result property="poundPosition"    column="pound_position"    />
+        <result property="amount"    column="amount"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+
+        <result property="goodsName"    column="goods_name"    />
+        <result property="customerName"    column="customer_name"    />
+    </resultMap>
+
+    <sql id="selectReceiptDetailsVo">
+        select receipt_details_id, receipt_id, goods_id, customer_id, gross_weight, cages_number, price, tare_weight, pound_position, amount, status, create_by, create_time, update_by, update_time from ye_receipt_details
+    </sql>
+
+    <select id="selectReceiptDetailsList" parameterType="ReceiptDetails" resultMap="ReceiptDetailsResult">
+
+        <![CDATA[
+              select  b.receipt_details_id, a.delivery_date, b.goods_id, b.customer_id, b.gross_weight, b.cages_number, b.price,
+               b.tare_weight, b.pound_position, b.amount, b.status, b.create_by, b.create_time, b.update_by, b.update_time,
+               c.goods_name, d.customer_name
+                from  ye_receipt a
+                left join ye_receipt_details b on b.receipt_id = a.receipt_id
+                left join ye_goods c on c.goods_id = b.goods_id
+                left join ye_customer d on d.customer_id = b.customer_id
+        ]]>
+        <where>
+            and a.status = '0' and b.status = '0' and c.status = '0' and d.status = '0'
+            <if test="deliveryDateBeginTime != null and deliveryDateBeginTime != ''"><!-- 開始時間检索 -->
+                AND a.delivery_date &gt;= to_date(#{deliveryDateBeginTime},'yyyy-MM-dd HH24:mi:ss')
+            </if>
+            <if test="deliveryDateEndTime != null and deliveryDateEndTime != ''"><!-- 結束時間检索 -->
+                AND a.delivery_date &lt;= to_date(#{deliveryDateEndTime},'yyyy-MM-dd HH24:mi:ss')
+            </if>
+            <if test="customerId != null "> and b.customer_id = #{customerId}</if>
+        </where>
+    </select>
+    
+
+</mapper>

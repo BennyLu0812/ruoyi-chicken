@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.business.mapper.CustomerMapper">
+    
+    <resultMap type="Customer" id="CustomerResult">
+        <result property="customerId"    column="customer_id"    />
+        <result property="customerPhone"    column="customer_phone"    />
+        <result property="customerName"    column="customer_name"    />
+        <result property="customerAddress"    column="customer_address"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectCustomerVo">
+        select customer_id, customer_phone, customer_name, customer_address, status, create_by, create_time, update_by, update_time from ye_customer
+    </sql>
+
+    <select id="selectCustomerList" parameterType="Customer" resultMap="CustomerResult">
+        <include refid="selectCustomerVo"/>
+        <where>  
+            <if test="customerPhone != null  and customerPhone != ''"> and customer_phone = #{customerPhone}</if>
+            <if test="customerName != null  and customerName != ''"> and customer_name like concat('%', #{customerName}, '%')</if>
+            <if test="customerAddress != null  and customerAddress != ''"> and customer_address = #{customerAddress}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectCustomerByCustomerId" parameterType="Long" resultMap="CustomerResult">
+        <include refid="selectCustomerVo"/>
+        where customer_id = #{customerId}
+    </select>
+        
+    <insert id="insertCustomer" parameterType="Customer" useGeneratedKeys="true" keyProperty="customerId">
+        insert into ye_customer
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="customerPhone != null">customer_phone,</if>
+            <if test="customerName != null">customer_name,</if>
+            <if test="customerAddress != null">customer_address,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="customerPhone != null">#{customerPhone},</if>
+            <if test="customerName != null">#{customerName},</if>
+            <if test="customerAddress != null">#{customerAddress},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCustomer" parameterType="Customer">
+        update ye_customer
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="customerPhone != null">customer_phone = #{customerPhone},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="customerAddress != null">customer_address = #{customerAddress},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where customer_id = #{customerId}
+    </update>
+
+    <delete id="deleteCustomerByCustomerId" parameterType="Long">
+        delete from ye_customer where customer_id = #{customerId}
+    </delete>
+
+    <delete id="deleteCustomerByCustomerIds" parameterType="String">
+        delete from ye_customer where customer_id in 
+        <foreach item="customerId" collection="array" open="(" separator="," close=")">
+            #{customerId}
+        </foreach>
+    </delete>
+</mapper>
