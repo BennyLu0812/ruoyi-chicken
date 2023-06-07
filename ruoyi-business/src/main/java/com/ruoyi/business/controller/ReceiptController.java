@@ -108,14 +108,17 @@ public class ReceiptController extends BaseController
         return toAjax(receiptService.deleteReceiptByReceiptIds(receiptIds));
     }
 
-    /**
-     * 查询单据明细列表
-     */
+    @GetMapping("/customerReceiptDetailList")
+    public TableDataInfo customerReceiptDetailList(ReceiptDetails receiptDetails) {
+        List<ReceiptDetails> list = receiptDetailsService.selectReceiptDetailsList(receiptDetails);
+        return getDataTable(list);
+    }
+
     @PreAuthorize("@ss.hasPermi('business:receiptDetails:list')")
     @GetMapping("/customerReceiptList")
     public TableDataInfo customerReceiptList(ReceiptDetails receiptDetails) {
-
-        List<ReceiptDetails> list = receiptDetailsService.selectReceiptDetailsList(receiptDetails);
+        startPage();
+        List<ReceiptDetails> list = receiptDetailsService.selectCustomerReceiptList(receiptDetails);
         return getDataTable(list);
     }
 

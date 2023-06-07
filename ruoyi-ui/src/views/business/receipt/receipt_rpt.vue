@@ -32,50 +32,84 @@
           size="mini"
           @click="handleExport"
           v-hasPermi="['business:receiptDetails:export']"
-        >导出</el-button>
+        >导出明细</el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
+    <el-table v-loading="loading"  :data="customerReceiptList"
+      :summary-method="getSummariesAmount" show-summary >
 
-
-    <el-table v-loading="loading" :data="customerReceiptList"
-        :summary-method="getSummariesAmount" show-summary >
-      <el-table-column label="序号" align="center">
+      <el-table-column label="序号" align="center"  >
         <template slot-scope="scope">
           <span>{{scope.$index + 1}}</span>
         </template>
       </el-table-column>
-      <el-table-column label="送货日期" align="center" prop="deliveryDate" width="180">
+      <el-table-column label="客户" prop="customerName"  />
+      <el-table-column label="金额" prop="totalAmount"  >
+          <template slot-scope="scope">
+               <span>{{scope.row.totalAmount}}元</span>
+          </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" >
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.deliveryDate, '{y}-{m}-{d}') }}</span>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-view"
+            @click="handleDetail(scope.row.customerId)"
+            >详情
+          </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="客户" prop="customerName" width="150" />
-      <el-table-column label="品种" prop="goodsName" width="150" />
-      <el-table-column label="毛重" prop="grossWeight" width="150" />
-      <el-table-column label="笼数" prop="cagesNumber" width="150" />
-      <el-table-column label="单价" prop="price" width="150" />
-      <el-table-column label="皮重" prop="tareWeight" width="150" />
-      <el-table-column label="磅位" prop="poundPosition" width="150" />
-      <el-table-column label="金额" prop="amount" width="150" >
-          <template slot-scope="scope">
-               <span>{{scope.row.amount}}元</span>
-          </template>
-      </el-table-column>
-      <el-table-column label="狀態" align="center" prop="status" >
-          <template slot-scope="scope">
-            <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
-          </template>
-      </el-table-column>
-    </el-table>
 
+    </el-table>
+    <pagination
+      v-show="total>0"
+      :total="total"
+      :page.sync="queryParams.pageNum"
+      :limit.sync="queryParams.pageSize"
+      @pagination="getList"/>
+
+
+    <!-- 详情 -->
+    <el-dialog :title="title" :visible.sync="showDetails" width="90%" append-to-body>
+        <el-table  :data="customerReceiptDetailList" >
+          <el-table-column label="序号" align="center">
+            <template slot-scope="scope">
+              <span>{{scope.$index + 1}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="送货日期" align="center" prop="deliveryDate" width="180">
+            <template slot-scope="scope">
+              <span>{{ parseTime(scope.row.deliveryDate, '{y}-{m}-{d}') }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="客户" prop="customerName" width="150" />
+          <el-table-column label="品种" prop="goodsName" width="150" />
+          <el-table-column label="毛重" prop="grossWeight" width="150" />
+          <el-table-column label="笼数" prop="cagesNumber" width="150" />
+          <el-table-column label="单价" prop="price" width="150" />
+          <el-table-column label="皮重" prop="tareWeight" width="150" />
+          <el-table-column label="磅位" prop="poundPosition" width="150" />
+          <el-table-column label="金额" prop="amount" width="150" >
+              <template slot-scope="scope">
+                   <span>{{scope.row.amount}}元</span>
+              </template>
+          </el-table-column>
+          <el-table-column label="状态" align="center" prop="status" >
+              <template slot-scope="scope">
+                <dict-tag :options="dict.type.sys_normal_disable" :value="scope.row.status"/>
+              </template>
+          </el-table-column>
+        </el-table>
+    </el-dialog>
 
   </div>
 </template>
 
 <script>
-import { listCustomerReceipt } from "@/api/business/receipt_rpt";
+import { customerReceiptList, customerReceiptDetailList } from "@/api/business/receipt_rpt";
 import { optionselect as getCustomerOptionselect } from "@/api/business/customer";
 import { isEmpty } from '@/utils/ruoyi';
 
@@ -90,8 +124,12 @@ export default {
       loading: false,
       // 显示搜索条件
       showSearch: true,
+      // 显示詳情
+      showDetails: false,
       // 总条数
       total: 0,
+      // 詳情標題
+      title: '',
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -103,6 +141,8 @@ export default {
       },
       // 单据数据
       customerReceiptList: [],
+      // dan
+      customerReceiptDetailList:[],
       // 客户下来
       customerOptions: []
     }
@@ -119,33 +159,53 @@ export default {
   },
   methods: {
     getSummariesAmount(param) {
-      const { columns, data } = param;
-      const sums = [];
-      columns.forEach((column, index) => {
-        if (index === 1) {
-          sums[index] = '合计';
-          return;
-        } else if (index === 9) {
-          const values = data.map(item => Number(item[column.property]));
-          if (!values.every(value => isNaN(value))) {
-             const values = data.map(item => Number(item[column.property]))
-             if (!values.every(value => isNaN(value))) {
-               sums[index] = values.reduce((prev, curr) => {
-                  const value = Number(curr)
-                  if (!isNaN(value)) {
-                    return prev + curr
-                  } else {
-                    return prev
+          const { columns, data } = param;
+          const sums = [];
+          var totalAmount;
+          columns.forEach((column, index) => {
+            if (index === 0) {
+              sums[index] = '合计';
+              return;
+            } else if (index === 2) {
+              const values = data.map(item => Number(item[column.property]));
+              if (!values.every(value => isNaN(value))) {
+                 const values = data.map(item => Number(item[column.property]))
+                 if (!values.every(value => isNaN(value))) {
+                   sums[index] = values.reduce((prev, curr) => {
+                      const value = Number(curr)
+                      if (!isNaN(value)) {
+                        return prev + curr
+                      } else {
+                        return prev
+                      }
+                   }, 0).toFixed(2)
                   }
-               }, 0).toFixed(2)
+                  sums[index] += ' 元';
+              } else {
+                sums[index] = 'N/A';
               }
-              sums[index] += ' 元';
-          } else {
-            sums[index] = 'N/A';
-          }
-        }
+            }
+          });
+          return sums;
+        },
+
+    /** 详情按钮操作 */
+    handleDetail(customerId) {
+      var  queryParamsDTO = {
+        customerId: customerId,
+        deliveryDateBeginTime: '',
+        deliveryDateEndTime: ''
+      };
+      if (!isEmpty(this.queryParams.deliveryDates) ) {
+          queryParamsDTO.deliveryDateBeginTime=this.queryParams.deliveryDates[0];
+          queryParamsDTO.deliveryDateEndTime=this.queryParams.deliveryDates[1];
+      }
+      customerReceiptDetailList(queryParamsDTO).then(response => {
+        console.log(response.rows);
+        this.customerReceiptDetailList = response.rows;
+        this.showDetails = true;
+        this.title = "報表详情";
       });
-      return sums;
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -172,12 +232,17 @@ export default {
     /** 查询单据头列表 */
     getList() {
       this.loading = true;
-      listCustomerReceipt(this.queryParams).then(response => {
-        console.log(response.rows);
+      customerReceiptList(this.queryParams).then(response => {
         this.customerReceiptList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
+    },
+     /** 查询单据明細列表 */
+    getDetailList() {
+       customerReceiptDetailList(this.queryParams).then(response => {
+          this.customerReceiptDetailList = response.rows;
+       });
     },
      /** 导出按钮操作 */
      handleExport() {

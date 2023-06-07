@@ -39,6 +39,15 @@ public class IReceiptDetailsServiceTest {
         Assert.assertTrue(org.apache.commons.collections.CollectionUtils.isNotEmpty(list));
     }
 
+    @Test
+    public void testSelectCustomerReceiptList() {
+        ReceiptDetails receiptDetails = new ReceiptDetails();
+        receiptDetails.setCustomerId(1L);
+
+        List<ReceiptDetails> list =  receiptDetailsService.selectCustomerReceiptList(receiptDetails);
+        Assert.assertTrue(org.apache.commons.collections.CollectionUtils.isNotEmpty(list));
+    }
+
 
 
 }

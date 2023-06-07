@@ -24,6 +24,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="goodsName"    column="goods_name"    />
         <result property="customerName"    column="customer_name"    />
         <result property="deliveryDate"    column="delivery_date"    />
+        <result property="totalAmount"    column="total_amount"    />
     </resultMap>
 
     <sql id="selectReceiptDetailsVo">
@@ -49,6 +50,25 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="customerId != null "> and b.customer_id = #{customerId}</if>
         </where>
         order by a.delivery_date desc
+    </select>
+
+
+    <select id="selectCustomerReceiptList" parameterType="ReceiptDetails" resultMap="ReceiptDetailsResult">
+        <![CDATA[
+                SELECT b.customer_id, d.customer_name, SUM(b.amount) as 'total_amount'
+                from  ye_receipt a
+                left join ye_receipt_details b on b.receipt_id = a.receipt_id
+                left join ye_customer d on d.customer_id = b.customer_id
+        ]]>
+        <where>
+            and a.status = '0' and b.status = '0' and d.status = '0'
+            <if test="deliveryDateBeginTime != null and deliveryDateBeginTime != '' and deliveryDateEndTime != null and deliveryDateEndTime != ''"><!-- 開始時間检索 -->
+                AND a.delivery_date BETWEEN #{deliveryDateBeginTime} and #{deliveryDateEndTime}
+            </if>
+            <if test="customerId != null "> and b.customer_id = #{customerId}</if>
+        </where>
+        GROUP BY b.customer_id
+        order by b.customer_id asc
     </select>
     
 

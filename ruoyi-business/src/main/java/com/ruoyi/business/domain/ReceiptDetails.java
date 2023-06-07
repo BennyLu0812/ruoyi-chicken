@@ -66,6 +66,8 @@ public class ReceiptDetails extends BaseEntity
     private String deliveryDateBeginTime;
     private String deliveryDateEndTime;
 
+    private Double totalAmount;
+
     /** 送货日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "送货日期", width = 30, dateFormat = "yyyy-MM-dd")
@@ -212,6 +214,14 @@ public class ReceiptDetails extends BaseEntity
         this.deliveryDate = deliveryDate;
     }
 
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -235,6 +245,7 @@ public class ReceiptDetails extends BaseEntity
             .append("deliveryDateBeginTime", getDeliveryDateBeginTime())
             .append("deliveryDateEndTime", getDeliveryDateEndTime())
             .append("deliveryDate", getDeliveryDate())
+            .append("totalAmount", getTotalAmount())
             .toString();
     }
 }

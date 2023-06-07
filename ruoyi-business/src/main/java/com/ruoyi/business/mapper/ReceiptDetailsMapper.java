@@ -58,4 +58,12 @@ public interface ReceiptDetailsMapper
      * @return 结果
      */
     public int deleteReceiptDetailsByReceiptDetailsIds(Long[] receiptDetailsIds);
+
+    /**
+     * 查询单据報表
+     *
+     * @param receiptDetails 单据明细
+     * @return 单据報表集合
+     */
+    public List<ReceiptDetails> selectCustomerReceiptList(ReceiptDetails receiptDetails);
 }

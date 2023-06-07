@@ -31,4 +31,9 @@ public class ReceiptDetailsServiceImpl implements IReceiptDetailsService {
         return receiptDetailsMapper.selectReceiptDetailsList(receiptDetails);
     }
 
+    @Override
+    public List<ReceiptDetails> selectCustomerReceiptList(ReceiptDetails receiptDetails) {
+        return receiptDetailsMapper.selectCustomerReceiptList(receiptDetails);
+    }
+
 }

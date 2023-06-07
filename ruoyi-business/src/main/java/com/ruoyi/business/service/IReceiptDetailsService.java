@@ -20,5 +20,13 @@ public interface IReceiptDetailsService
      */
     public List<ReceiptDetails> selectReceiptDetailsList(ReceiptDetails receiptDetails);
 
+    /**
+     * 查询单据報表
+     *
+     * @param receiptDetails 单据明细
+     * @return 单据報表集合
+     */
+    public List<ReceiptDetails> selectCustomerReceiptList(ReceiptDetails receiptDetails);
+
 
 }
